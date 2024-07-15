@@ -37,7 +37,10 @@ module.exports = authController = {
       sendEmail(
         savedUser.email,
         "Account Created",
-        `Welcome ${savedUser.name}! You have successfully created an account , Baobao.`
+        `Welcome ${savedUser.name}! You have successfully created an account , Baobao.`,
+        `
+          <p style="font-family: Arial, sans-serif; line-height: 1.5; color: #333; padding: 1rem; background-color: #f5f5f5; border: 1px solid #ccc; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 400px;">Click <a style="text-decoration: none; color: #4CAF50; background-color: #f5f5f5; padding: 14px 20px; margin: 8px 0; border: none; display: inline-block; cursor: pointer; width: 100%;" href="${process.env.CLIENT_URL}/auth/sign-in" target="_blank">here</a> to login</p>
+        `
       );
 
       res.status(201).json({
