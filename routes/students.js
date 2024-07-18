@@ -12,9 +12,16 @@ router.delete("/delete/:id", requireSignin, studentController.deleteStudent);
 
 // Add Students By Sending Email To Them
 router.post(
-    "/add-by-email",
-    requireSignin,
-    studentController.addStudentsByEmail
+  "/add-by-email",
+  requireSignin,
+  studentController.addStudentsByEmail
+);
+
+// @route GET api/batches/:batchId/students/all for user
+router.get(
+  "/:batchId/all",
+  requireSignin,
+  studentController.getAllStudentsOfABatch
 );
 
 module.exports = router;

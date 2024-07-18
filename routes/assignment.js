@@ -2,35 +2,41 @@ const express = require("express");
 const router = express.Router();
 const assignmentController = require("../controllers/assignmentController");
 const { requireSignin } = require("../middlewares/authMiddleware");
-const multer = require('multer');
+const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post(
-  "/new",
+  "/:batchId/new",
   requireSignin,
-  upload.array('files', 10),
+  upload.array("files", 10),
   assignmentController.createAssignment
 );
-router.put(
-  "/:id",
+
+router.post(
+  "/hand-in/:assignmentId",
   requireSignin,
-  assignmentController.updateAssignment
+  upload.array("files", 10),
+  assignmentController.handInAsignment
 );
-router.delete(
-  "/:id",
-  requireSignin,
-  assignmentController.deleteAssignment
-);
+
 router.get(
-  "/:id",
+  "/get-single/:assignmentId",
   requireSignin,
   assignmentController.getAssignmentById
 );
+
 router.get(
-  "/course/:courseId",
+  "/submitted/:batchId/:assignmentId",
   requireSignin,
-  assignmentController.getAssignmentsByCourseId
+  assignmentController.getSubmittedAssignmentByBatchId
 );
+
+router.get(
+  "/:batchId/all",
+  requireSignin,
+  assignmentController.getAllAssignmentsByBatchId
+);
+
 router.get(
   "/submissions/:id",
   requireSignin,

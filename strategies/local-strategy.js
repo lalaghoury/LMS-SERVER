@@ -7,17 +7,17 @@ passport.serializeUser((user, done) => {
   done(null, user._id);
 });
 
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findById(id);
-      if (!user) {
-        return done(new Error("User Not Found"), null);
-      }
-      done(null, user);
-    } catch (err) {
-      done(err, null);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return done(new Error("User Not Found"), null);
     }
-  });
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
 
 passport.use(
   new Strategy({ usernameField: "email" }, async (email, password, done) => {

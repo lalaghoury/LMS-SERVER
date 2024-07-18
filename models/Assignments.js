@@ -3,8 +3,11 @@ const Schema = mongoose.Schema;
 
 const assignmentSchema = new Schema(
   {
-    title: { type: String, required: true },
-    instructions: { type: String, required: true },
+    title: { type: String, required: [true, "Title is required"] },
+    instructions: {
+      type: String,
+      required: [true, "Instructions are required"],
+    },
     attachments: [],
     state: {
       type: String,
@@ -12,9 +15,14 @@ const assignmentSchema = new Schema(
       enum: ["PUBLISHED", "DRAFT", "DELETED"],
     },
     alternateLink: { type: String, default: "" },
-    courseId: { type: String, required: true },
-    teacherId: { type: String, required: true },
+    batchId: {
+      type: Schema.Types.ObjectId,
+      ref: "Batch",
+      required: [true, "Batch ID is required"],
+    },
+    teacherId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     students: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    submissions: [{ type: Schema.Types.ObjectId, ref: "Submissions" }],
   },
   { timestamps: true }
 );

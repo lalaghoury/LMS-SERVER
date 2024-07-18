@@ -3,24 +3,14 @@ const studentController = require("../controllers/studentController.js");
 const { requireSignin } = require("../middlewares/authMiddleware.js");
 const router = express.Router();
 
-// User Routes
+router.post("/send-by-email/:batchId", requireSignin, studentController.addStudentsByEmail);
 
-// @route GET api/batches/all to get all batches
-// router.get("/all", requireSignin, studentController.getAllBatches);
+router.post("/verify-invite/:batchId/:inviteCode", requireSignin, studentController.verifyInviteCode);
 
-// @route GET api/batches/get-single/:id to get a  single Batch
-// router.get("/get-single/:id", requireSignin, studentController.getABatchById);
+router.post("/generate-invite/:batchId", requireSignin, studentController.generateInviteCode);
 
-// @route POST api/batches/new for batch
-router.post("/:batchId", requireSignin, studentController.addStudentsByEmail);
+router.post("/join/:inviteCode", requireSignin,  studentController.joinBatchByCode);
 
-// @route POST api/batches/new for batch
-router.post("/:batchId/verify-invite/:inviteCode", requireSignin, studentController.verifyInviteCode);
 
-// @route PUT api/batches/single/update/:id for user
-// router.put("/update/:id", requireSignin, studentController.updateABatch);
-
-// @route DELETE api/batches/:id for user
-// router.delete("/delete/:id", requireSignin, studentController.deleteABatch);
 
 module.exports = router;

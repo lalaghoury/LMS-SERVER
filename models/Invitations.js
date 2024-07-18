@@ -3,20 +3,19 @@ const mongoose = require("mongoose");
 const invitationSchema = new mongoose.Schema({
   inviteCode: {
     type: String,
-    required: true,
-    // unique: true,
+    required: [true, "Please provide invite code"],
+    unique: true,
   },
   expiresAt: {
     type: Date,
-    required: true,
+    required: [true, "Please provide expiry date"],
   },
   MadeBy: {
     type: String,
-    required: true,
+    required: [true, "Please provide user id"],
   },
   email: {
     type: String,
-    required: true,
   },
 });
 

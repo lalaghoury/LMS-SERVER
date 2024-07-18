@@ -23,6 +23,11 @@ const userSchema = new Schema(
       default: "local",
       enum: ["local", "google", "discord"],
     },
+    role: {
+      type: String,
+      default: "student",
+      enum: ["student", "teacher"],
+    },
   },
   { timestamps: true }
 );
