@@ -116,7 +116,7 @@ module.exports = {
       const batch = await BatchModel.findOne(query)
         .populate({
           path: "owner",
-          select: "name _id",
+          select: "name _id email",
         })
         .populate({ path: "teachers", select: "name _id" })
         .populate({ path: "students", select: "name _id" });

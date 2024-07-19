@@ -223,12 +223,18 @@ const studentController = {
         .populate("students", "_id name email avatar")
         .populate("owner", "_id name email avatar")
         .populate("teachers", "_id name email avatar");
-      console.log("🚀 ~ verifyInviteCode: ~ batch:", batch);
 
       if (!batch) {
         return res.status(404).json({
           success: false,
           message: "Batch not found",
+        });
+      }
+
+      if (batch.owner._id.toString() === req.user._id.toString()) {
+        return res.status(401).json({
+          success: false,
+          message: "You cannot join your own batch",
         });
       }
 
@@ -299,6 +305,13 @@ const studentController = {
         return res.status(404).json({
           success: false,
           message: "User not found",
+        });
+      }
+
+      if (batch.owner._id.toString() === user._id.toString()) {
+        return res.status(401).json({
+          success: false,
+          message: "You cannot join your own batch",
         });
       }
 
