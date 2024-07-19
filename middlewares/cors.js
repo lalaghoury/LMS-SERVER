@@ -9,4 +9,4 @@ const useCors = (app) => {
   );
 };
 
-module.exports = useCors;
+module.exports = useCors; 
