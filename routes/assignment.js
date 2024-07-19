@@ -13,7 +13,7 @@ router.post(
 );
 
 router.post(
-  "/hand-in/:assignmentId",
+  "/hand-in/:batchId/:assignmentId",
   requireSignin,
   upload.array("files", 10),
   assignmentController.handInAsignment

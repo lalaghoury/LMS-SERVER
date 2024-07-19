@@ -28,6 +28,14 @@ const useRoutes = (app) => {
   const studentsRouter = require("../routes/students");
   app.use("/api/batches/students", studentsRouter);
 
+  // Submissions Routes
+  const submissionsRouter = require("../routes/submissions");
+  app.use("/api/batches/submissions", submissionsRouter);
+
+  // Charts Routes
+  const chartRouter = require("../routes/chart");
+  app.use("/api/batches/chart", chartRouter);
+
   // Image Routes
   const imageRouter = require("../routes/image");
   app.use("/api/images", imageRouter);

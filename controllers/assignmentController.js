@@ -203,7 +203,7 @@ const assignmentController = {
 
   handInAsignment: async (req, res) => {
     try {
-      const { assignmentId } = req.params;
+      const { assignmentId, batchId } = req.params;
       const { files } = req;
       const assignment = await Assignments.findById(assignmentId);
       if (!assignment) {
@@ -249,6 +249,7 @@ const assignmentController = {
         assignmentId,
         studentId: req.user._id,
         attachments,
+        batchId,
       });
 
       await submission.save();
