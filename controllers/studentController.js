@@ -106,7 +106,7 @@ const studentController = {
         });
       }
 
-      const baseUrl = `/dashboard/batches/${req.params.batchId}/invite`;
+      const baseUrl = `/batches/${req.params.batchId}/invite`;
 
       const inviteCode = `${crypto
         .randomBytes(20)
@@ -162,7 +162,7 @@ const studentController = {
       );
 
       if (unregisteredEmails.length > 0) {
-        const baseUrl = `/dashboard/batches/${req.params.batchId}/invite`;
+        const baseUrl = `/batches/${req.params.batchId}/invite`;
         const invitations = unregisteredEmails.map((email) => {
           const inviteCode =
             crypto.randomBytes(20).toString("hex") + `_${Date.now()}`;
@@ -201,7 +201,7 @@ const studentController = {
               "Invitation",
               `You are invited to join the batch. Please accept the invite.`,
               `
-          <p style="font-family: Arial, sans-serif; line-height: 1.5; color: #333; padding: 1rem; background-color: #f5f5f5; border: 1px solid #ccc; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 400px;">Click here: <a style="text-decoration: none; color: #4CAF50; background-color: #f5f5f5; padding: 14px 20px; margin: 8px 0; border: none; display: inline-block; cursor: pointer; width: 100%;" href="http://${process.env.CLIENT_URL}/dashboard/batches/${req.params.batchId}/invite/${user._id}" target="_blank">here</a> to accept the invite.</p>
+          <p style="font-family: Arial, sans-serif; line-height: 1.5; color: #333; padding: 1rem; background-color: #f5f5f5; border: 1px solid #ccc; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 400px;">Click here: <a style="text-decoration: none; color: #4CAF50; background-color: #f5f5f5; padding: 14px 20px; margin: 8px 0; border: none; display: inline-block; cursor: pointer; width: 100%;" href="http://${process.env.CLIENT_URL}/batches/${req.params.batchId}/invite/${user._id}" target="_blank">here</a> to accept the invite.</p>
         `
             )
           )
