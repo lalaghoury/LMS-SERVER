@@ -36,7 +36,11 @@ const batchSchema = new mongoose.Schema(
       type: String,
       unique: true,
       default: () => `${crypto.randomBytes(20).toString("hex")}_${Date.now()}`,
-      required: true,
+    },
+    batchTeacherCode: {
+      type: String,
+      unique: true,
+      default: () => `${crypto.randomBytes(20).toString("hex")}_teacherInvite_${Date.now()}`,
     },
     section: String,
     room: String,

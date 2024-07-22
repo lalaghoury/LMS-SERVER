@@ -8,8 +8,15 @@ const {
   verified,
   callbackSignin,
   resetPassword,
+  verifiedStudent,
+  verifiedTeacher,
 } = require("../controllers/authController");
-const { requireSignin } = require("../middlewares/authMiddleware");
+const {
+  requireSignin,
+  isTeacherOrOwner,
+  isStudent,
+  isOwner,
+} = require("../middlewares/authMiddleware");
 require("../strategies/local-strategy");
 require("../strategies/google-strategy.js");
 require("../strategies/discord-strategy.js");
@@ -105,7 +112,8 @@ router.get("/login/failed", (req, res) => {
   );
 });
 
-// Euphoria-Backend\routes\auth.js~Verified
-router.get("/verify", requireSignin, verified);
+router.post("/verify/login", requireSignin, verified);
+router.post("/verify/teaching", requireSignin, isTeacherOrOwner, verifiedTeacher);
+router.post("/verify/enrolled", requireSignin, isStudent, verifiedStudent);
 
 module.exports = router;

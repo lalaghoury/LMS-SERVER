@@ -12,6 +12,11 @@ const submissionSchema = new Schema(
     studentId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     attachments: [],
     feedback: { type: String, default: "" },
+    grade: {
+      type: String,
+      enum: ["A", "B", "C", "D", "E", "F", "Not Graded"],
+      default: "Not Graded",
+    },
   },
   { timestamps: true }
 );

@@ -6,12 +6,7 @@ module.exports = {
     try {
       const { batchId, assignmentId } = req.params;
 
-      const query = {
-        _id: batchId,
-        $or: [{ owner: req.user._id }, { teachers: { $in: [req.user._id] } }],
-      };
-
-      const batch = await Batch.findOne(query);
+      const batch = req.batch;
       if (!batch) {
         return res.status(404).json({
           success: false,
@@ -48,16 +43,8 @@ module.exports = {
   getASingleSubmissionOfAnAssignment: async (req, res) => {
     try {
       const { batchId, assignmentId, submissionId } = req.params;
-      const query = {
-        _id: batchId,
-        $or: [
-          { owner: req.user._id },
-          { teachers: { $in: [req.user._id] } },
-          { students: { $in: [req.user._id] } },
-        ],
-      };
 
-      const batch = await Batch.findOne(query);
+      const batch = req.batch;
       if (!batch) {
         return res.status(404).json({
           success: false,
@@ -91,6 +78,45 @@ module.exports = {
       });
     } catch (error) {
       console.log("🚀 ~ getASingleSubmissionOfAnAssignment: ~ error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to get submission",
+        error: error.message,
+      });
+    }
+  },
+
+  updateGrade: async (req, res) => {
+    try {
+      const { batchId, assignmentId, submissionId } = req.params;
+      const { grade } = req.body;
+
+      const submission = await Submissions.findOne({
+        batchId: batchId,
+        assignmentId: assignmentId,
+        _id: submissionId,
+      });
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          message: "Submission not found",
+        });
+      }
+      await Submissions.findOneAndUpdate(
+        { _id: submissionId },
+        { $set: { grade } }
+      );
+
+      submission.grade = grade;
+      await submission.save();
+
+      res.status(200).json({
+        success: true,
+        submission,
+        message: "Submission's grade updated successfully",
+      });
+    } catch (error) {
+      console.log("🚀 ~ updateGrade: ~ error:", error);
       res.status(500).json({
         success: false,
         message: "Failed to get submission",

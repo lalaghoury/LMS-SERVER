@@ -82,19 +82,7 @@ module.exports = {
   },
   getABatchByIdAsTeacherOrOwner: async (req, res) => {
     try {
-      const batchId = req.params.batchId;
-      const query = {
-        $or: [{ teachers: req.user._id }, { owner: req.user._id }],
-        _id: batchId,
-      };
-
-      const batch = await BatchModel.findOne(query)
-        .populate({
-          path: "owner",
-          select: "name _id",
-        })
-        .populate({ path: "teachers", select: "name _id" })
-        .populate({ path: "students", select: "name _id" });
+      const batch = req.batch;
 
       if (!batch) {
         return res
@@ -104,6 +92,7 @@ module.exports = {
 
       res.json({ batch, success: true, message: "Batch fetched successfully" });
     } catch (error) {
+      console.log(error);
       res
         .status(500)
         .json({ error, message: "Failed to get batch", success: false });
@@ -111,15 +100,7 @@ module.exports = {
   },
   getABatchByIdAsStudent: async (req, res) => {
     try {
-      const batchId = req.params.batchId;
-      const query = { students: { $in: [req.user._id] }, _id: batchId };
-      const batch = await BatchModel.findOne(query)
-        .populate({
-          path: "owner",
-          select: "name _id email",
-        })
-        .populate({ path: "teachers", select: "name _id" })
-        .populate({ path: "students", select: "name _id" });
+      const batch = req.batch;
 
       if (!batch) {
         return res

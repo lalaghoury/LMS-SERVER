@@ -1,6 +1,7 @@
 const Invitations = require("../models/Invitations");
 const User = require("../models/User");
 const Batch = require("../models/Batch");
+const Blocklist = require("../models/Blocklist");
 const { sendEmail } = require("../config/nodemailerConfig");
 const crypto = require("node:crypto");
 
@@ -50,10 +51,7 @@ const studentController = {
   //getAllStudentsOfABatch
   getAllStudentsOfABatch: async (req, res) => {
     try {
-      const batch = await Batch.findById(req.params.batchId)
-        .populate("students", "name email _id")
-        .populate("teachers", "name email _id")
-        .populate("owner", "name email _id");
+      const batch = req.batch;
 
       res.json({
         students: batch.students,
@@ -64,6 +62,29 @@ const studentController = {
       res.json({
         success: false,
         message: "Failed to get students",
+        erroe: error.message,
+      });
+    }
+  },
+
+  //getAllBlockedStudentsOfABatch
+  getAllBlockedStudentsOfABatch: async (req, res) => {
+    try {
+      const batch = req.batch;
+
+      const blockedStudents = await Blocklist.find({ batchId: batch._id })
+        .populate("blockedUser", "name _id email avatar")
+        .populate("blockedBy", "name _id");
+
+      res.json({
+        students: blockedStudents,
+        success: true,
+        message: "Blocked Students fetched successfully",
+      });
+    } catch (error) {
+      res.json({
+        success: false,
+        message: "Failed to get blocked students",
         erroe: error.message,
       });
     }
@@ -277,7 +298,11 @@ const studentController = {
     try {
       const { inviteCode } = req.params;
 
-      const batch = await Batch.findOne({ batchCode: inviteCode })
+      const inviteType = inviteCode.includes("_teacherInvite_")
+        ? "batchTeacherCode"
+        : "batchCode";
+
+      const batch = await Batch.findOne({ [inviteType]: inviteCode })
         .populate({
           path: "owner",
           select: "name _id",
@@ -292,7 +317,7 @@ const studentController = {
         });
       }
 
-      const isMatch = inviteCode === batch.batchCode;
+      const isMatch = inviteCode === batch[inviteType];
       if (!isMatch) {
         return res.status(401).json({
           success: false,
@@ -300,13 +325,7 @@ const studentController = {
         });
       }
 
-      const user = await User.findById(req.user._id);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
+      const user = req.user;
 
       if (batch.owner._id.toString() === user._id.toString()) {
         return res.status(401).json({
@@ -315,28 +334,184 @@ const studentController = {
         });
       }
 
-      const isAlreadyEnrolled = batch.students.some(
-        (student) => student._id.toString() === user._id.toString()
-      );
-      if (isAlreadyEnrolled) {
-        return res.status(401).json({
-          success: false,
-          message: "User already enrolled in the batch",
-        });
+      if (inviteType === "batchCode") {
+        const isAlreadyTeacher = batch.teachers.some(
+          (t) => t._id.toString() === user._id.toString()
+        );
+        if (isAlreadyTeacher) {
+          return res.status(401).json({
+            success: false,
+            message: "You are already a Teacher in the batch",
+          });
+        }
+
+        const isAlreadyEnrolled = batch.students.some(
+          (s) => s._id.toString() === user._id.toString()
+        );
+        if (isAlreadyEnrolled) {
+          return res.status(401).json({
+            success: false,
+            message: "User already enrolled in the batch",
+          });
+        }
+
+        batch.students.push(user._id);
+      } else {
+        const isAlreadyEnrolled = batch.students.some(
+          (s) => s._id.toString() === user._id.toString()
+        );
+        if (isAlreadyEnrolled) {
+          return res.status(401).json({
+            success: false,
+            message: "User already enrolled as student in the batch",
+          });
+        }
+
+        const isAlreadyTeacher = batch.teachers.some(
+          (t) => t._id.toString() === user._id.toString()
+        );
+        if (isAlreadyTeacher) {
+          return res.status(401).json({
+            success: false,
+            message: "You are already a Teacher in the batch",
+          });
+        }
+
+        batch.teachers.push(user._id);
       }
 
-      batch.students.push(user._id);
       await batch.save();
 
       res.json({
         success: true,
-        message: "User enrolled successfully",
+        message: `You have been added to ${
+          inviteType === "batchCode" ? "students" : "teachers"
+        } successfully`,
         batch,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         message: "Failed to accept invite code",
+        error: error.message,
+      });
+    }
+  },
+
+  // blockStudent
+  blockStudent: async (req, res) => {
+    try {
+      const { batchId, studentId } = req.params;
+      const userId = req.user._id;
+      const batch = req.batch;
+
+      const isStudentInBatch = batch.students.some(
+        (student) => student._id.toString() === studentId.toString()
+      );
+      if (!isStudentInBatch) {
+        return res.status(404).json({
+          success: false,
+          message: "Student does not exist in the batch",
+        });
+      }
+
+      const student = await User.findById(studentId);
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: "Student not found",
+        });
+      }
+
+      const alreadyBlocked = await Blocklist.findOne({
+        batchId,
+        blockedUser: studentId,
+      }).populate("blockedBy", "name");
+      if (alreadyBlocked) {
+        return res.status(404).json({
+          success: false,
+          message: `Student already blocked by ${alreadyBlocked.blockedBy.name}`,
+        });
+      }
+
+      await Blocklist.create({
+        batchId,
+        blockedBy: userId,
+        blockedUser: studentId,
+        note:
+          req.body.note ||
+          `${student.name} blocked by ${
+            req.user.name
+          } at ${new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          })}`,
+      });
+
+      batch.students = batch.students.filter(
+        (s) => s._id.toString() !== studentId.toString()
+      );
+      await batch.save();
+
+      res.json({
+        success: true,
+        message: "Student blocked successfully",
+        studentId, // I am giving this studentId to the frontend in order to remove the student from the state of redux
+      });
+    } catch (error) {
+      console.log("🚀 ~ blockStudent: ~ error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to block student",
+        error: error.message,
+      });
+    }
+  },
+
+  // unBlockUser
+  unBlockUser: async (req, res) => {
+    try {
+      const { batchId, studentId } = req.params;
+      const batch = req.batch;
+
+      const IsBlocked = await Blocklist.findOne({
+        batchId,
+        blockedUser: studentId,
+      });
+      if (!IsBlocked) {
+        return res.status(404).json({
+          success: false,
+          message: "Student is not blocked",
+        });
+      }
+
+      const isStudentInBatch = batch.students.some(
+        (student) => student._id.toString() === studentId.toString()
+      );
+      if (isStudentInBatch) {
+        return res.status(404).json({
+          success: false,
+          message: "Student already exist in the batch",
+        });
+      }
+
+      await Blocklist.findByIdAndDelete(IsBlocked._id);
+      batch.students.push(studentId);
+      await batch.save();
+      res.json({
+        success: true,
+        message: "Student unblocked successfully",
+        studentId,
+        students: batch.students,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to unblock student",
         error: error.message,
       });
     }

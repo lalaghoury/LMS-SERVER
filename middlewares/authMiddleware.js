@@ -41,72 +41,107 @@ const requireSignin = async (req, res, next) => {
   }
 };
 
-const isTeacherOrOwnerOfBatch = async (req, res, next) => {
+const isTeacherOrOwner = async (req, res, next) => {
   try {
-    const user = req.user;
-
-    const batch = Batch.findById(req.params.batchId);
-
-    if (!batch) {
-      return res.status(401).json({
-        message: "Batch not found. Please login again.",
-        success: false,
-      });
+    const batchId = req.params.batchId || req.body.batchId;
+    if (!batchId) {
+      return next();
     }
 
-    const isTeacherOrOwner =
-      batch.teachers.some((t) => t.toString() === user._id.toString()) ||
-      user._id.toString() === batch.owner.toString();
+    const user = req.user;
 
-    if (!isTeacherOrOwner) {
+    const batch = await Batch.findOne({
+      _id: batchId,
+      $or: [{ owner: user._id }, { teachers: { $in: [user._id] } }],
+    })
+      .populate("owner", "name _id email avatar")
+      .populate("teachers", "name _id email avatar")
+      .populate("students", "name _id email avatar");
+
+    if (!batch) {
       return res.status(401).json({
         message: "You are not authorized to perform this action",
         success: false,
       });
     }
 
-    req.isTeacherOrOwnerOfBatch = isTeacherOrOwner;
+    req.batch = batch;
 
     next();
   } catch (error) {
-    console.error("Error in isTeacherOrOwnerOfBatch middleware:", error);
+    console.error("Error in isTeacherOrOwner middleware:", error);
     return res.status(401).json({
       message: "Please login to continue",
+      success: false,
+      error: error.message,
     });
   }
 };
 
-const isStudentOfBatch = async (req, res, next) => {
+const isStudent = async (req, res, next) => {
   try {
-    const user = req.user;
-
-    const batch = Batch.findOne({ _id: req.params.batchId });
-
-    if (!batch) {
-      return res.status(401).json({
-        message: "Batch not found. Please try again.",
-        success: false,
-      });
+    const batchId = req.params.batchId || req.body.batchId;
+    if (!batchId) {
+      return next();
     }
 
-    const isTeacherOrOwner =
-      batch.teachers.some((t) => t.toString() === user._id.toString()) ||
-      user._id.toString() === batch.owner.toString();
+    const user = req.user;
 
-    if (!isTeacherOrOwner) {
+    const batch = await Batch.findOne({
+      _id: batchId,
+      students: { $in: [user._id] },
+    });
+
+    if (!batch) {
       return res.status(401).json({
         message: "You are not authorized to perform this action",
         success: false,
       });
     }
 
-    req.isTeacherOrOwnerOfBatch = isTeacherOrOwner;
+    req.batch = batch;
 
     next();
   } catch (error) {
-    console.error("Error in isTeacherOrOwnerOfBatch middleware:", error);
+    console.error("Error in isStudent middleware:", error);
     return res.status(401).json({
       message: "Please login to continue",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+const isOwner = async (req, res, next) => {
+  try {
+    const batchId = req.params.batchId || req.body.batchId;
+    if (!batchId) {
+      return next();
+    }
+
+    const user = req.user;
+
+    const batch = await Batch.findOne({
+      _id: batchId,
+      owner: user._id,
+    });
+
+    if (!batch) {
+      return res.status(401).json({
+        message: "You are not authorized to perform this action",
+        success: false,
+      });
+    }
+
+    req.batch = batch;
+
+    next();
+  } catch (error) {
+    console.error("Error in isOwner middleware:", error);
+    return res.status(401).json({
+      message: "Please login to continue",
+      success: false,
+      error: error.message,
     });
   }
 };
@@ -126,6 +161,7 @@ const SignToken = (userId) => {
 module.exports = {
   requireSignin,
   SignToken,
-  isTeacherOrOwnerOfBatch,
-  isStudentOfBatch,
+  isTeacherOrOwner,
+  isStudent,
+  isOwner,
 };

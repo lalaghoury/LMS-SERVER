@@ -237,6 +237,26 @@ module.exports = authController = {
       res.status(400).json({ message: error.message, success: false });
     }
   },
+  verifiedTeacher: (req, res) => {
+    try {
+      const user = req.user;
+      res
+        .status(200)
+        .json({ message: "Sign in successful!", success: true, user });
+    } catch (error) {
+      res.status(400).json({ message: error.message, success: false });
+    }
+  },
+  verifiedStudent: (req, res) => {
+    try {
+      const user = req.user;
+      res
+        .status(200)
+        .json({ message: "Sign in successful!", success: true, user });
+    } catch (error) {
+      res.status(400).json({ message: error.message, success: false });
+    }
+  },
 
   callbackSignin: async (req, res) => {
     const user = req.user;
