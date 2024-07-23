@@ -23,7 +23,7 @@ const useRoutes = (app) => {
   // Assignment Routes
   const assignmentRouter = require("../routes/assignment");
   app.use("/api/batches/assignments", assignmentRouter);
- 
+
   // Student Routes
   const studentsRouter = require("../routes/students");
   app.use("/api/batches/students", studentsRouter);
